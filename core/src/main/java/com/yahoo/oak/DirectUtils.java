@@ -6,11 +6,13 @@
 
 package com.yahoo.oak;
 
-import sun.misc.Unsafe;
-
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.nio.Buffer;
+import java.lang.invoke.VarHandle;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Support read/write API to direct memory address.
@@ -19,54 +21,64 @@ import java.nio.Buffer;
  * compiled in newer Java versions.
  */
 public final class DirectUtils {
-    private static final Unsafe UNSAFE;
-    static final long INT_ARRAY_OFFSET;
+    static int MAX_BUFFER_SIZE = 1024 * 1024 * 1024;
+    static List<ByteBuffer> BUFFERS = new ArrayList<>();
+    static Map<Long, Long> REGIONS = new HashMap<>();
 
     static final long LONG_INT_MASK = (1L << Integer.SIZE) - 1L;
 
-    private static final Field ADDRESS;
-    private static final Field CAPACITY;
-
     static {
-        // Access and create a new instance of Unsafe
-        try {
-            Constructor<Unsafe> unsafeConstructor = Unsafe.class.getDeclaredConstructor();
-            unsafeConstructor.setAccessible(true);
-            UNSAFE = unsafeConstructor.newInstance();
-            INT_ARRAY_OFFSET = UNSAFE.arrayBaseOffset(int[].class);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
-        // Wrapping address with bytebuffer
-        try {
-            ADDRESS = Buffer.class.getDeclaredField("address");
-            CAPACITY = Buffer.class.getDeclaredField("capacity");
-            ADDRESS.setAccessible(true);
-            CAPACITY.setAccessible(true);
-        } catch (NoSuchFieldException e) {
-            throw new RuntimeException(e);
-        }
+        // Just to make sure our virtual address space does not start with Zero.
+        BUFFERS.add(null);
     }
-
     private DirectUtils() {
     }
 
     /**
-     * Allocate memory. The returned address should be freed explicitly using {@link DirectUtils#freeMemory(long)}.
+     * Allocate memory. The returned address should be freed explicitly using {@link #freeMemory(long)}.
      * @param capacity the memory capacity to allocate
      * @return an address to the newly allocated memory.
      */
-    public static long allocateMemory(long capacity) {
-        return DirectUtils.UNSAFE.allocateMemory(capacity);
+    public static synchronized long allocateMemory(long capacity) {
+        long address = (long) MAX_BUFFER_SIZE * BUFFERS.size();
+        var numBuffers = capacity / MAX_BUFFER_SIZE;
+        var tail = capacity % MAX_BUFFER_SIZE;
+
+        // Temporary list that will be freed if the OOM error occurs.
+        List<ByteBuffer> newBuffers = new ArrayList<>();
+        for (int i = 0; i < numBuffers; ++i) {
+            newBuffers.add(ByteBuffer.allocateDirect(MAX_BUFFER_SIZE).order(ByteOrder.LITTLE_ENDIAN));
+        }
+        if (tail > 0L) {
+            newBuffers.add(ByteBuffer.allocateDirect((int) tail).order(ByteOrder.LITTLE_ENDIAN));
+        }
+
+        BUFFERS.addAll(newBuffers);
+        REGIONS.put(address, capacity);
+        return address;
     }
 
     /**
-     * Releases memory that was allocated via {@link DirectUtils#allocateMemory(long)}.
+     * Releases memory that was allocated via {@link com.yahoo.oak.DirectUtils#allocateMemory(long)}.
      * @param address the memory address to release.
      */
-    public static void freeMemory(long address) {
-        DirectUtils.UNSAFE.freeMemory(address);
+    public static synchronized void freeMemory(long address) {
+        Long size = REGIONS.get(address);
+        if (size == null) {
+            // already freed
+            return;
+        }
+        var numBuffers = size / MAX_BUFFER_SIZE;
+        if (size % MAX_BUFFER_SIZE > 0) {
+            numBuffers++;
+        }
+
+        int bufferIndex = getBufferIndex(address);
+        for (int i = 0; i < numBuffers; ++i) {
+            // Never remove items. Instead, set buffer to null to avoid re-using address space.
+            BUFFERS.set(bufferIndex + i, null);
+        }
+        REGIONS.remove(address);
     }
 
     /**
@@ -76,7 +88,16 @@ public final class DirectUtils {
      * @param value the value to write
      */
     public static void setMemory(long address, long bytes, byte value) {
-        UNSAFE.setMemory(address, bytes, value);
+        int bufferIndex = getBufferIndex(address);
+        int start = getStartInBuffer(address);
+        ByteBuffer buffer = ensureBufferAllocated(bufferIndex);
+        for (int i = 0; i < bytes; i++) {
+            buffer.put(start, value);
+            if (++start == MAX_BUFFER_SIZE) {
+                start = 0;
+                buffer = ensureBufferAllocated(++bufferIndex);
+            }
+        }
     }
 
     /**
@@ -85,7 +106,7 @@ public final class DirectUtils {
      * @return the read value
      */
     public static byte get(long address) {
-        return UNSAFE.getByte(address);
+        return getByteBufferForAddress(address).get(getStartInBuffer(address));
     }
 
     /**
@@ -94,7 +115,11 @@ public final class DirectUtils {
      * @return the read value
      */
     public static char getChar(long address) {
-        return UNSAFE.getChar(address);
+        int start = getStartInBuffer(address);
+        if (start + Character.BYTES <= MAX_BUFFER_SIZE) {
+            return getByteBufferForAddress(address).getChar(start);
+        }
+        return getBytes(address, Character.BYTES).getChar();
     }
 
     /**
@@ -103,7 +128,11 @@ public final class DirectUtils {
      * @return the read value
      */
     public static short getShort(long address) {
-        return UNSAFE.getShort(address);
+        int start = getStartInBuffer(address);
+        if (start + Short.BYTES <= MAX_BUFFER_SIZE) {
+            return getByteBufferForAddress(address).getShort(start);
+        }
+        return getBytes(address, Short.BYTES).getShort();
     }
 
     /**
@@ -112,7 +141,11 @@ public final class DirectUtils {
      * @return the read value
      */
     public static int getInt(long address) {
-        return UNSAFE.getInt(address);
+        int start = getStartInBuffer(address);
+        if (start + Integer.BYTES <= MAX_BUFFER_SIZE) {
+            return getByteBufferForAddress(address).getInt(start);
+        }
+        return getBytes(address, Integer.BYTES).getInt();
     }
 
     /**
@@ -121,7 +154,11 @@ public final class DirectUtils {
      * @return the read value
      */
     public static long getLong(long address) {
-        return UNSAFE.getLong(address);
+        int start = getStartInBuffer(address);
+        if (start + Long.BYTES <= MAX_BUFFER_SIZE) {
+            return getByteBufferForAddress(address).getLong(start);
+        }
+        return getBytes(address, Long.BYTES).getLong();
     }
 
     /**
@@ -130,7 +167,11 @@ public final class DirectUtils {
      * @return the read value
      */
     public static float getFloat(long address) {
-        return UNSAFE.getFloat(address);
+        int start = getStartInBuffer(address);
+        if (start + Float.BYTES <= MAX_BUFFER_SIZE) {
+            return getByteBufferForAddress(address).getFloat(start);
+        }
+        return getBytes(address, Float.BYTES).getFloat();
     }
 
     /**
@@ -139,7 +180,11 @@ public final class DirectUtils {
      * @return the read value
      */
     public static double getDouble(long address) {
-        return UNSAFE.getDouble(address);
+        int start = getStartInBuffer(address);
+        if (start + Double.BYTES <= MAX_BUFFER_SIZE) {
+            return getByteBufferForAddress(address).getDouble(start);
+        }
+        return getBytes(address, Double.BYTES).getDouble();
     }
 
     /**
@@ -148,7 +193,7 @@ public final class DirectUtils {
      * @param value the value to write
      */
     public static void put(long address, byte value) {
-        UNSAFE.putByte(address, value);
+        getByteBufferForAddress(address).put(getStartInBuffer(address), value);
     }
 
     /**
@@ -157,7 +202,13 @@ public final class DirectUtils {
      * @param value the value to write
      */
     public static void putChar(long address, char value) {
-        UNSAFE.putChar(address, value);
+        int start = getStartInBuffer(address);
+        if (start + Character.BYTES <= MAX_BUFFER_SIZE) {
+            getByteBufferForAddress(address).putChar(start, value);
+        } else {
+            ByteBuffer buffer = ByteBuffer.allocate(Character.BYTES).putChar(value);
+            putBytes(address, buffer);
+        }
     }
 
     /**
@@ -166,7 +217,13 @@ public final class DirectUtils {
      * @param value the value to write
      */
     public static void putShort(long address, short value) {
-        UNSAFE.putShort(address, value);
+        int start = getStartInBuffer(address);
+        if (start + Short.BYTES <= MAX_BUFFER_SIZE) {
+            getByteBufferForAddress(address).putShort(start, value);
+        } else {
+            ByteBuffer buffer = ByteBuffer.allocate(Short.BYTES).putShort(value);
+            putBytes(address, buffer);
+        }
     }
 
     /**
@@ -175,7 +232,13 @@ public final class DirectUtils {
      * @param value the value to write
      */
     public static void putInt(long address, int value) {
-        UNSAFE.putInt(address, value);
+        int start = getStartInBuffer(address);
+        if (start + Integer.BYTES <= MAX_BUFFER_SIZE) {
+            getByteBufferForAddress(address).putInt(start, value);
+        } else {
+            ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES).putInt(value);
+            putBytes(address, buffer);
+        }
     }
 
     /**
@@ -184,7 +247,13 @@ public final class DirectUtils {
      * @param value the value to write
      */
     public static void putLong(long address, long value) {
-        UNSAFE.putLong(address, value);
+        int start = getStartInBuffer(address);
+        if (start + Long.BYTES <= MAX_BUFFER_SIZE) {
+            getByteBufferForAddress(address).putLong(start, value);
+        } else {
+            ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES).putLong(value);
+            putBytes(address, buffer);
+        }
     }
 
     /**
@@ -193,7 +262,13 @@ public final class DirectUtils {
      * @param value the value to write
      */
     public static void putFloat(long address, float value) {
-        UNSAFE.putFloat(address, value);
+        int start = getStartInBuffer(address);
+        if (start + Float.BYTES <= MAX_BUFFER_SIZE) {
+            getByteBufferForAddress(address).putFloat(start, value);
+        } else {
+            ByteBuffer buffer = ByteBuffer.allocate(Float.BYTES).putFloat(value);
+            putBytes(address, buffer);
+        }
     }
 
     /**
@@ -202,7 +277,13 @@ public final class DirectUtils {
      * @param value the value to write
      */
     public static void putDouble(long address, double value) {
-        UNSAFE.putDouble(address, value);
+        int start = getStartInBuffer(address);
+        if (start + Double.BYTES <= MAX_BUFFER_SIZE) {
+            getByteBufferForAddress(address).putDouble(start, value);
+        } else {
+            ByteBuffer buffer = ByteBuffer.allocate(Double.BYTES).putDouble(value);
+            putBytes(address, buffer);
+        }
     }
 
     /**
@@ -213,9 +294,13 @@ public final class DirectUtils {
      * @return the number of bytes that were copied
      */
     public static long copyToArray(long address, int[] array, int size) {
-        long sizeBytes = ((long) size) * Integer.BYTES;
-        UNSAFE.copyMemory(null, address, array, INT_ARRAY_OFFSET, sizeBytes);
-        return sizeBytes;
+        long offset = address;
+        for (int i = 0; i < size; ++i) {
+            array[i] = getInt(offset);
+            offset += Integer.BYTES;
+        }
+
+        return (long) size * Integer.BYTES;
     }
 
     /**
@@ -226,9 +311,13 @@ public final class DirectUtils {
      * @return the number of bytes that were copied
      */
     public static long copyFromArray(int[] array, long address, int size) {
-        long sizeBytes = ((long) size) * Integer.BYTES;
-        UNSAFE.copyMemory(array, INT_ARRAY_OFFSET, null, address, sizeBytes);
-        return sizeBytes;
+        long offset = address;
+        for (int i = 0; i < size; ++i) {
+            putInt(offset, array[i]);
+            offset += Integer.BYTES;
+        }
+
+        return (long) size * Integer.BYTES;
     }
 
     /**
@@ -243,12 +332,125 @@ public final class DirectUtils {
         return (i1 & LONG_INT_MASK) | (((long) i2) << Integer.SIZE);
     }
 
+    private static int getBufferIndex(long address) {
+        return (int) (address / MAX_BUFFER_SIZE);
+    }
+
+    private static int getStartInBuffer(long address) {
+        return (int) (address % MAX_BUFFER_SIZE);
+    }
+
+    private static ByteBuffer ensureBufferAllocated(int bufferIndex) {
+        final ByteBuffer buffer = BUFFERS.get(bufferIndex);
+        if (buffer == null) {
+            long address = (long) bufferIndex * MAX_BUFFER_SIZE;
+            throw new ArrayIndexOutOfBoundsException("Address " + address + " is freed or not allocated");
+        }
+        return buffer;
+    }
+
+    private static ByteBuffer getByteBufferForAddress(long address) {
+        return ensureBufferAllocated(getBufferIndex(address));
+    }
+
+    public static void copyMemory(long srcAddress, long dstAddress, int size) {
+        byte[] local = new byte[size];
+        int srcBufferIndex = getBufferIndex(srcAddress);
+        var srcBuffer = ensureBufferAllocated(srcBufferIndex);
+        var srcStart = getStartInBuffer(srcAddress);
+        if (size + srcStart <= MAX_BUFFER_SIZE) {
+            srcBuffer.get(srcStart, local);
+        } else {
+
+            // Read head
+            int remaining = size;
+            int read = MAX_BUFFER_SIZE - srcStart;
+            srcBuffer.get(srcStart, local, 0, read);
+            remaining -= read;
+
+            // Read whole buffers
+            while (remaining > MAX_BUFFER_SIZE) {
+                srcBuffer = ensureBufferAllocated(++srcBufferIndex);
+                srcBuffer.get(0, local, read, MAX_BUFFER_SIZE);
+                read += MAX_BUFFER_SIZE;
+                remaining -= MAX_BUFFER_SIZE;
+            }
+
+            // Read tail
+            if (remaining > 0) {
+                srcBuffer = ensureBufferAllocated(++srcBufferIndex);
+                srcBuffer.get(0, local, read, remaining);
+            }
+        }
+
+        int dstBufferIndex = getBufferIndex(dstAddress);
+        var dstBuffer = ensureBufferAllocated(dstBufferIndex);
+        var dstStart = getStartInBuffer(dstAddress);
+        if (size + dstStart <= MAX_BUFFER_SIZE) {
+            dstBuffer.put(dstStart, local);
+        } else {
+            // Write head
+            int remaining = size;
+            int written = MAX_BUFFER_SIZE - dstStart;
+            dstBuffer.put(dstStart, local, 0, written);
+            remaining -= written;
+
+            // Write whole buffers
+            while (remaining > MAX_BUFFER_SIZE) {
+                dstBuffer = ensureBufferAllocated(++dstBufferIndex);
+                dstBuffer.put(0, local, written, MAX_BUFFER_SIZE);
+                written += MAX_BUFFER_SIZE;
+                remaining -= MAX_BUFFER_SIZE;
+            }
+
+            // Write tail
+            if (remaining > 0) {
+                dstBuffer = ensureBufferAllocated(++dstBufferIndex);
+                dstBuffer.put(0, local, written, remaining);
+            }
+        }
+    }
+
+    /**
+     * Unoptimized version that reads bytes one-by one for reading data split into multiple buffers.
+     *
+     * @param address starting address
+     * @param length the length to read
+     * @return on-heap ByteBuffer
+     */
+    private static ByteBuffer getBytes(
+            long address,
+            int length
+    ) {
+        byte[] bytes = new byte[length];
+        long offset = address;
+        for (int i = 0; i < length; ++i) {
+            bytes[i] = get(offset++);
+        }
+        return ByteBuffer.wrap(bytes);
+    }
+
+    /**
+     * Unoptimized version that writes bytes one-by one for writing data split into multiple buffers.
+     *
+     * @param address starting address
+     * @param buffer the on-heap ByteBuffer to write
+     */
+    private static void putBytes(
+            long address,
+            ByteBuffer buffer
+    ) {
+        for (int i = 0; i < buffer.limit(); ++i) {
+            put(address + i, buffer.get(i));
+        }
+    }
+
     /**
      * Ensures that loads and stores before the fence will not be reordered with
      * stores after the fence; a "StoreStore plus LoadStore barrier".
      */
     public static void storeFence() {
-        UNSAFE.storeFence();
+        VarHandle.storeStoreFence();
     }
 
     /**
@@ -256,7 +458,7 @@ public final class DirectUtils {
      * stores after the fence; a "LoadLoad plus LoadStore barrier".
      */
     public static void loadFence() {
-        UNSAFE.loadFence();
+        VarHandle.loadLoadFence();
     }
 
     /**
@@ -266,13 +468,7 @@ public final class DirectUtils {
      * barrier.
      */
     public static void fullFence() {
-        UNSAFE.fullFence();
+        VarHandle.fullFence();
     }
 
-    /**
-     * Sets all bytes in a given block of memory to a copy of another block.
-     */
-    public static void copyMemory(long srcAddress, long destAddress, int bytes) {
-        UNSAFE.copyMemory(srcAddress, destAddress, bytes);
-    }
 }
