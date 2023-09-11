@@ -91,7 +91,7 @@ class OrderedChunk<K, V> extends BasicChunk<K, V> {
         dst.getSlice().allocate(keySize, false);
 
         // We duplicate the buffer without instantiating a write buffer because the user is not involved.
-        DirectUtils.UNSAFE.copyMemory(src.getAddress(), dst.getAddress(), keySize);
+        DirectUtils.copyMemory(src.getAddress(), dst.getAddress(), keySize);
         src.s.postWrite();
     }
 

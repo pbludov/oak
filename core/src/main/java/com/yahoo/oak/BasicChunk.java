@@ -132,7 +132,7 @@ abstract class BasicChunk<K, V> {
         state.compareAndSet(State.INFANT, State.NORMAL);
         creator.set(null);
         // using fence so other puts can continue working immediately on this chunk
-        DirectUtils.UNSAFE.storeFence();
+        DirectUtils.storeFence();
     }
 
     State state() {

@@ -25,7 +25,7 @@ class NovaMMHeader {
     private static final ReferenceCodecNovaHeader RC = new ReferenceCodecNovaHeader();
     
     long getOffHeapHeader(long headerAddress) {
-        return DirectUtils.UNSAFE.getLong(headerAddress);
+        return DirectUtils.getLong(headerAddress);
     }
 
     public int getDataLength(long headerAddress) {
@@ -36,14 +36,18 @@ class NovaMMHeader {
     public void initHeader(long headerAddress, int dataLength, int version) {
         //TODO add assert for length < 2^32?
         long header = RC.encode(version, dataLength);
-        DirectUtils.UNSAFE.putLong(headerAddress, header);
+        DirectUtils.putLong(headerAddress, header);
     }
 
 
     
-    private static boolean atomicallySetDeleted(long headerAddress, long offHeapMeta) {
+    private static synchronized boolean atomicallySetDeleted(long headerAddress, long offHeapMeta) {
         // this CAS replaces the old offheap version with new one that has 1 as the first bit to indicate deletion
-        return DirectUtils.UNSAFE.compareAndSwapLong(null, headerAddress, offHeapMeta, offHeapMeta | 1);
+        if (DirectUtils.getLong(headerAddress) == offHeapMeta) {
+            DirectUtils.putLong(headerAddress, offHeapMeta | 1);
+            return true;
+        }
+        return false;
     }
     
     
@@ -56,7 +60,7 @@ class NovaMMHeader {
     }
 
     ValueUtils.ValueResult postRead(final int onHeapVersion, long headerAddress) {
-        DirectUtils.UNSAFE.loadFence();
+        DirectUtils.loadFence();
         long offHeapHeader = getOffHeapHeader(headerAddress);
         int offHeapVersion = RC.getFirst(offHeapHeader);
         if (onHeapVersion != offHeapVersion) {
@@ -73,7 +77,7 @@ class NovaMMHeader {
         }
         NovaMemoryManager.setTap(tap, tapEntry,
                 (int) Thread.currentThread().getId() % ThreadIndexCalculator.MAX_THREADS);
-        DirectUtils.UNSAFE.fullFence();
+        DirectUtils.fullFence();
         int offHeapVersion = RC.getFirst(offHeapHeader);
         if (onHeapVersion != offHeapVersion) {
             NovaMemoryManager.resetTap(tap, 
@@ -85,7 +89,7 @@ class NovaMMHeader {
     }
 
     ValueUtils.ValueResult postWrite(final int onHeapVersion, long headerAddress, AtomicLongArray tap) {
-        DirectUtils.UNSAFE.storeFence();
+        DirectUtils.storeFence();
         NovaMemoryManager.resetTap(tap, 
                 (int) Thread.currentThread().getId() % ThreadIndexCalculator.MAX_THREADS);
         return ValueUtils.ValueResult.TRUE;

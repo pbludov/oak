@@ -19,7 +19,7 @@ import java.nio.Buffer;
  * compiled in newer Java versions.
  */
 public final class DirectUtils {
-    static final Unsafe UNSAFE;
+    private static final Unsafe UNSAFE;
     static final long INT_ARRAY_OFFSET;
 
     static final long LONG_INT_MASK = (1L << Integer.SIZE) - 1L;
@@ -241,5 +241,38 @@ public final class DirectUtils {
      */
     public static long intsToLong(int i1, int i2) {
         return (i1 & LONG_INT_MASK) | (((long) i2) << Integer.SIZE);
+    }
+
+    /**
+     * Ensures that loads and stores before the fence will not be reordered with
+     * stores after the fence; a "StoreStore plus LoadStore barrier".
+     */
+    public static void storeFence() {
+        UNSAFE.storeFence();
+    }
+
+    /**
+     * Ensures that loads before the fence will not be reordered with loads and
+     * stores after the fence; a "LoadLoad plus LoadStore barrier".
+     */
+    public static void loadFence() {
+        UNSAFE.loadFence();
+    }
+
+    /**
+     * Ensures that loads and stores before the fence will not be reordered
+     * with loads and stores after the fence.  Implies the effects of both
+     * loadFence() and storeFence(), and in addition, the effect of a StoreLoad
+     * barrier.
+     */
+    public static void fullFence() {
+        UNSAFE.fullFence();
+    }
+
+    /**
+     * Sets all bytes in a given block of memory to a copy of another block.
+     */
+    public static void copyMemory(long srcAddress, long destAddress, int bytes) {
+        UNSAFE.copyMemory(srcAddress, destAddress, bytes);
     }
 }
