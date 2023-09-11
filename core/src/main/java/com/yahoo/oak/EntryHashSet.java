@@ -663,7 +663,10 @@ class EntryHashSet<K, V> extends EntryArray<K, V> {
      */
     @Override
     int getNextNonZeroIndex(int currentIndex) {
-        int nxtIdx = mapOfCleanEntries.nextSetBit(currentIndex + 1);
+        int nxtIdx;
+        synchronized (mapOfCleanEntries) {
+            nxtIdx = mapOfCleanEntries.nextSetBit(currentIndex + 1);
+        }
         if (nxtIdx == -1) {
             nxtIdx = INVALID_ENTRY_INDEX;
         }
