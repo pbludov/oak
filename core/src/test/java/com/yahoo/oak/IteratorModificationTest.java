@@ -31,7 +31,7 @@ public class IteratorModificationTest {
 
 
     private static String generateString(int i, int size) {
-        return String.format("%0$" + size + "s", String.valueOf(i));
+        return String.format("%1$" + size + "s", String.valueOf(i));
     }
 
     @Before
@@ -177,8 +177,8 @@ public class IteratorModificationTest {
             }
             while (continueWriting.get()) {
                 for (int j = 0; j < 200; j++) {
-                    String key = String.format("%0$" + KEY_SIZE + "s", String.valueOf(currentKey));
-                    String val = String.format("%0$" + VALUE_SIZE + "s", String.valueOf(currentKey));
+                    String key = String.format("%1$" + KEY_SIZE + "s", String.valueOf(currentKey));
+                    String val = String.format("%1$" + VALUE_SIZE + "s", String.valueOf(currentKey));
                     oak.zc().remove(key);
                     oak.zc().put(key, val);
                 }
@@ -229,7 +229,7 @@ public class IteratorModificationTest {
                 e.printStackTrace();
             }
             for (int i = 0; i < ELEMENTS; i++) {
-                String key = String.format("%0$" + KEY_SIZE + "s", String.valueOf(i));
+                String key = String.format("%1$" + KEY_SIZE + "s", String.valueOf(i));
                 oak.zc().remove(key);
             }
             scanLatch.countDown();
@@ -275,7 +275,7 @@ public class IteratorModificationTest {
                 e.printStackTrace();
             }
             for (int i = 0; i < ELEMENTS; i++) {
-                String key = String.format("%0$" + KEY_SIZE + "s", String.valueOf(i));
+                String key = String.format("%1$" + KEY_SIZE + "s", String.valueOf(i));
                 oak.zc().remove(key);
             }
             scanLatch.countDown();

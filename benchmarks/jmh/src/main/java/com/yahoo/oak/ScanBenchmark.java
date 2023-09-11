@@ -54,10 +54,10 @@ public class ScanBenchmark {
         oakMap = builder.buildOrderedMap();
 
         for (int i = 0; i < numRows; ++i) {
-            String key = String.format("%0$" + KEY_SIZE_BYTES / Character.BYTES + "s",
+            String key = String.format("%1$" + KEY_SIZE_BYTES / Character.BYTES + "s",
                     String.valueOf(i) + Thread.currentThread().getId());
 
-            String val = String.format("%0$-" + VALUE_SIZE_BYTES / Character.BYTES + "s",
+            String val = String.format("%1$-" + VALUE_SIZE_BYTES / Character.BYTES + "s",
                     String.valueOf(i) + Thread.currentThread().getId());
 
             oakMap.zc().put(key, val);
