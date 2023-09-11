@@ -6,8 +6,6 @@
 
 package com.yahoo.oak;
 
-import com.google.common.annotations.Beta;
-
 /**
  * This class builds a new OakMap instance, and sets serializers, deserializers and allocation size calculators,
  * received from the user.
@@ -72,7 +70,6 @@ public class OakMapBuilder<K, V> {
         return this;
     }
 
-    @Beta
     public OakMapBuilder<K, V> setPreallocHashChunksNum(int preallocHashChunksNum) {
         this.preallocHashChunksNum = preallocHashChunksNum;
         return this;
@@ -148,7 +145,6 @@ public class OakMapBuilder<K, V> {
         return new OakMap<>(config, minKey, orderedChunkMaxItems);
     }
 
-    @Beta
     public OakHashMap<K, V> buildHashMap() {
         if (preferredBlockSizeBytes != null) {
             BlocksPool.preferBlockSize(preferredBlockSizeBytes);
