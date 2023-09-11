@@ -6,9 +6,7 @@
 
 package com.yahoo.oak;
 
-import sun.misc.Unsafe;
-
-import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicLongArray;
 
 /**
  * Stores the entry array as Java long array (on-heap).
@@ -16,7 +14,7 @@ import java.util.Arrays;
 public class EntryArrayHeap implements EntryArrayInternal {
 
     // The array is initialized to 0 - this is important!
-    private final long[] entries;
+    private final AtomicLongArray entries;
 
     // Number of primitive fields in each entry
     private final int fieldCount;
@@ -31,7 +29,7 @@ public class EntryArrayHeap implements EntryArrayInternal {
     EntryArrayHeap(int entryCount, int fieldCount) {
         this.fieldCount = fieldCount;
         this.entryCount = entryCount;
-        this.entries = new long[entryCount * fieldCount];
+        this.entries = new AtomicLongArray(entryCount * fieldCount);
     }
 
     /**
@@ -60,27 +58,27 @@ public class EntryArrayHeap implements EntryArrayInternal {
     /** {@inheritDoc} */
     @Override
     public void clear() {
-        Arrays.fill(entries, 0);
+        for (int i = 0; i < entries.length(); i++) {
+            entries.lazySet(i, 0L);
+        }
     }
 
     /** {@inheritDoc} */
     @Override
     public long getEntryFieldLong(int entryIndex, int fieldIndex) {
-        return entries[entryOffset(entryIndex, fieldIndex)];
+        return entries.get(entryOffset(entryIndex, fieldIndex));
     }
 
     /** {@inheritDoc} */
     @Override
     public void setEntryFieldLong(int entryIndex, int fieldIndex, long value) {
-        entries[entryOffset(entryIndex, fieldIndex)] = value;
+        entries.set(entryOffset(entryIndex, fieldIndex), value);
     }
 
     /** {@inheritDoc} */
     @Override
     public boolean casEntryFieldLong(int entryIndex, int fieldIndex, long expectedValue, long newValue) {
-        int offset = Unsafe.ARRAY_LONG_BASE_OFFSET +
-                entryOffset(entryIndex, fieldIndex) * Unsafe.ARRAY_LONG_INDEX_SCALE;
-        return DirectUtils.UNSAFE.compareAndSwapLong(entries, offset, expectedValue, newValue);
+        return entries.compareAndSet(entryOffset(entryIndex, fieldIndex), expectedValue, newValue);
     }
 
     /**
@@ -90,10 +88,10 @@ public class EntryArrayHeap implements EntryArrayInternal {
     public void copyEntryFrom(EntryArrayInternal other, int srcEntryIndex, int destEntryIndex, int fieldCount) {
         assert fieldCount <= this.fieldCount;
         EntryArrayHeap o = (EntryArrayHeap) other;
-        System.arraycopy(o.entries,  // source entries array
-                o.entryOffset(srcEntryIndex, 0),
-                entries,                        // this entries array
-                o.entryOffset(destEntryIndex, 0),
-                fieldCount);
+        int srcOffset = o.entryOffset(srcEntryIndex, 0);
+        int dstOffset = entryOffset(destEntryIndex, 0);
+        for (int i = 0; i < fieldCount; i++) {
+            entries.set(dstOffset++, o.entries.get(srcOffset++));
+        }
     }
 }

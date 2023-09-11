@@ -6,30 +6,29 @@
 
 package com.yahoo.oak;
 
-import sun.misc.Unsafe;
-
 import java.util.NoSuchElementException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLongArray;
 
 final class ThreadIndexCalculator {
 
     public static final int MAX_THREADS = 64;
     private static final int INVALID_THREAD_ID = -1;
     // Long for correctness and anti false-sharing
-    private final long[] indices = new long[MAX_THREADS];
+    private final AtomicLongArray indices = new AtomicLongArray(MAX_THREADS);
     private final AtomicInteger index = new AtomicInteger(0);
 
     private ThreadIndexCalculator() {
         for (int i = 0; i < MAX_THREADS; ++i) {
-            indices[i] = INVALID_THREAD_ID;
+            indices.lazySet(i, INVALID_THREAD_ID);
         }
     }
 
     private int getExistingIndex(long threadID) {
         int iterationCnt = 0;
         int currentIndex = ((int) threadID) % MAX_THREADS;
-        while (indices[currentIndex] != threadID) {
-            if (indices[currentIndex] == INVALID_THREAD_ID) {
+        while (indices.get(currentIndex) != threadID) {
+            if (indices.get(currentIndex) == INVALID_THREAD_ID) {
                 // negative output indicates that a new index need to be created for this thread id
                 return -1 * currentIndex;
             }
@@ -49,13 +48,12 @@ final class ThreadIndexCalculator {
         }
         if (threadIdx == 0) {
             // due to multiplying by -1 check this special array element
-            if (tid == indices[0]) {
+            if (tid == indices.get(0)) {
                 return threadIdx;
             }
         }
         int i = threadIdx * -1;
-        while (!DirectUtils.UNSAFE.compareAndSwapLong(indices,
-                Unsafe.ARRAY_LONG_BASE_OFFSET + i * Unsafe.ARRAY_LONG_INDEX_SCALE, INVALID_THREAD_ID, tid)) {
+        while (!indices.compareAndSet(i, INVALID_THREAD_ID, tid)) {
             //TODO get out of loop sometime
             i = (i + 1) % MAX_THREADS;
         }
@@ -74,7 +72,7 @@ final class ThreadIndexCalculator {
             // Probably releasing the same thread twice
             throw new NoSuchElementException();
         }
-        indices[index] = INVALID_THREAD_ID;
+        indices.set(index, INVALID_THREAD_ID);
     }
 
     public static ThreadIndexCalculator newInstance() {
