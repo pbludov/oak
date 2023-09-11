@@ -87,12 +87,16 @@ class SyncRecycleMMHeader {
 
     /*---------------- Locking Implementation ----------------*/
 
-    private static boolean cas(long headerAddress, int expectedLock, int newLock, int version) {
-        // Since the writing is done directly to the memory, the endianness of the memory is important here.
-        // Therefore, we make sure that the values are read and written correctly.
+    private static synchronized boolean cas(long headerAddress, int expectedLock, int newLock, int version) {
+        // Originally there was an elegant and fast implementation with UNSAFE.compareAndSwapLong
+        // Now we have a bottleneck here. Patches are welcome.
         long expected = DirectUtils.intsToLong(version, expectedLock);
         long value = DirectUtils.intsToLong(version, newLock);
-        return DirectUtils.UNSAFE.compareAndSwapLong(null, headerAddress, expected, value);
+        if (DirectUtils.getLong(headerAddress) == expected) {
+            DirectUtils.putLong(headerAddress, value);
+            return true;
+        }
+        return false;
     }
 
     ValueUtils.ValueResult lockRead(final int onHeapVersion, long headerAddress) {
