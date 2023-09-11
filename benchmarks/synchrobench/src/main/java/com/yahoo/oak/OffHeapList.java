@@ -14,7 +14,6 @@ import com.yahoo.oak.synchrobench.contention.benchmark.Parameters;
 import com.yahoo.oak.synchrobench.maps.BenchMap;
 import org.openjdk.jmh.infra.Blackhole;
 
-import java.nio.ByteBuffer;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Map;
@@ -275,8 +274,7 @@ public class OffHeapList extends BenchMap {
     @Override
     public void putIfAbsentComputeIfPresentOak(BenchKey key, BenchValue value) {
         Consumer<OakScopedWriteBuffer> computeFunction = writeBuffer -> {
-            OakUnsafeDirectBuffer buffer = (OakUnsafeDirectBuffer) writeBuffer;
-            ByteBuffer buf = buffer.getByteBuffer();
+            ScopedWriteBuffer buf = (ScopedWriteBuffer) writeBuffer;
             buf.putLong(1, ~buf.getLong(1));
         };
 

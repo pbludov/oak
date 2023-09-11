@@ -6,8 +6,6 @@
 
 package com.yahoo.oak;
 
-import java.nio.ByteBuffer;
-
 /**
  * This interface allows high performance access to the underlying data of Oak.
  * To achieve that, it sacrifices safety, so it should be used only if you know what you are doing.
@@ -34,28 +32,6 @@ import java.nio.ByteBuffer;
  * </pre>
  */
 public interface OakUnsafeDirectBuffer {
-
-    /**
-     * Returns a {@link ByteBuffer} wrapping the underlying memory segment backing this buffer.
-     * <p>
-     * Note that returned {@link ByteBuffer} might be read-only, if it is obtained from a buffer
-     * implementing {@link OakScopedReadBuffer} but not {@link OakScopedWriteBuffer}. Such a buffer is
-     * read-only. So should {@link ByteBuffer}s returned from it.
-     * <p>
-     * Since a new {@link ByteBuffer} instance is returned on each invocation of this method, it's
-     * absolutely safe to modify the state of the returned {@link ByteBuffer} including its byte
-     * order, position, and limit.
-     *
-     * <h4>NOTE ON CONCURRENT ACCESSES</h4>
-     * Two {@link ByteBuffer}s from the same {@link OakUnsafeDirectBuffer} will reference the same
-     * underlying memory, and no coordination is implemented for concurrent accesses via different
-     * {@link ByteBuffer} instances. So concurrent accesses with at least one write may result in
-     * inconsistent reads and/or render the state of the buffer inconsistent, unless there is proper
-     * coordination (synchronization) implemented outside.
-     *
-     * @return a ByteBuffer wrapping the underlying memory segment
-     */
-    ByteBuffer getByteBuffer();
 
     /**
      * @return the data length.

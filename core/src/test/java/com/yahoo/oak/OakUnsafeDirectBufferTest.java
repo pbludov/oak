@@ -33,29 +33,29 @@ public class OakUnsafeDirectBufferTest {
     public void byteBufferFromKeyBufferShouldBeReadOnly() {
         Slice s = memoryManager.getEmptySlice();
         s.allocate(100, false);
-        Assert.assertTrue(new KeyBuffer(s).getByteBuffer().isReadOnly());
+        Assert.assertTrue(new KeyBuffer(s).isAssociated());
     }
 
     @Test
     public void byteBufferFromValueBufferShouldBeReadOnly() {
         Slice s = memoryManager.getEmptySlice();
         s.allocate(100, false);
-        Assert.assertTrue(new ValueBuffer(s).getByteBuffer().isReadOnly());
+        Assert.assertTrue(new ValueBuffer(s).isAssociated());
     }
 
     @Test
     public void byteBufferFromScopedReadBufferShouldBeReadOnly() {
         Slice s = memoryManager.getEmptySlice();
         s.allocate(100, false);
-        Assert.assertTrue(new ScopedReadBuffer(s).getByteBuffer().isReadOnly());
+        Assert.assertTrue(new ScopedReadBuffer(s).isAssociated());
     }
 
     @Test
     public void byteBufferFromScopedWriteBufferShouldBeWritable() {
         Slice s = memoryManager.getEmptySlice();
         s.allocate(100, false);
-        ScopedWriteBuffer.compute(s, buf -> Assert.assertFalse(
-                ((OakUnsafeDirectBuffer) buf).getByteBuffer().isReadOnly()));
+        ScopedWriteBuffer.compute(s, buf -> Assert.assertEquals(100,
+                ((OakUnsafeDirectBuffer) buf).getLength()));
     }
 
     @Test
@@ -63,15 +63,15 @@ public class OakUnsafeDirectBufferTest {
         Slice s = memoryManager.getEmptySlice();
         s.allocate(100, false);
         ScopedReadBuffer readBuffer = new ScopedReadBuffer(s);
-        Assert.assertTrue(new UnscopedBuffer<>(readBuffer).getByteBuffer().isReadOnly());
+        Assert.assertEquals(new UnscopedBuffer<>(readBuffer).getLength(), 100);
     }
 
     @Test
     public void byteBufferFromScopedBufferShouldBeWritableWhenWrappingWritableBuffer() {
         Slice s = memoryManager.getEmptySlice();
         s.allocate(100, false);
-        ScopedWriteBuffer.compute(s, buf -> Assert.assertFalse(
-                new UnscopedBuffer<>((ScopedWriteBuffer) buf).getByteBuffer().isReadOnly()));
+        ScopedWriteBuffer.compute(s, buf -> Assert.assertEquals(100,
+                new UnscopedBuffer<>((ScopedWriteBuffer) buf).getLength()));
     }
 
     @Test
@@ -83,8 +83,7 @@ public class OakUnsafeDirectBufferTest {
 
         KeyBuffer keyBuffer = new KeyBuffer(keySlice);
         ValueBuffer valueBuffer = new ValueBuffer(valueSlice);
-        Assert.assertTrue(
-                new UnscopedValueBufferSynced(keyBuffer, valueBuffer, null).getByteBuffer()
-                        .isReadOnly());
+        Assert.assertEquals(100,
+                new UnscopedValueBufferSynced(keyBuffer, valueBuffer, null).getLength());
     }
 }

@@ -11,7 +11,6 @@ import sun.misc.Unsafe;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.nio.Buffer;
-import java.nio.ByteBuffer;
 
 /**
  * Support read/write API to direct memory address.
@@ -230,25 +229,6 @@ public final class DirectUtils {
         long sizeBytes = ((long) size) * Integer.BYTES;
         UNSAFE.copyMemory(array, INT_ARRAY_OFFSET, null, address, sizeBytes);
         return sizeBytes;
-    }
-
-    /**
-     * Wraps a memory address as a direct byte buffer.
-     * @param address the source memory address to wrap
-     * @param capacity the new byte buffer capacity
-     * @return a direct byte buffer instance
-     */
-    public static ByteBuffer wrapAddress(long address, int capacity) {
-        ByteBuffer bb = ByteBuffer.allocateDirect(0);
-        try {
-            ADDRESS.setLong(bb, address);
-            CAPACITY.setInt(bb, capacity);
-            bb.clear();
-        } catch (IllegalAccessException e) {
-            // This should never happen because the fields are set as accessible.
-            throw new RuntimeException(e);
-        }
-        return bb;
     }
 
     /**

@@ -6,8 +6,6 @@
 
 package com.yahoo.oak;
 
-import java.nio.ByteBuffer;
-
 /**
  * This is a generic class for key/value un-scoped buffers.
  * This class is used for when an un-scoped access to the key/value is needed without synchronization:
@@ -113,11 +111,6 @@ class UnscopedBuffer<B extends ScopedReadBuffer> implements OakUnscopedBuffer, O
     }
 
     /*-------------- OakUnsafeDirectBuffer --------------*/
-
-    @Override
-    public ByteBuffer getByteBuffer() {
-        return internalScopedReadBuffer.getByteBuffer();
-    }
 
     @Override
     public int getLength() {

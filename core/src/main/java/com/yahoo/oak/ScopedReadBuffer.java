@@ -6,8 +6,6 @@
 
 package com.yahoo.oak;
 
-import java.nio.ByteBuffer;
-
 /**
  * An instance of this buffer is only used when the read lock of the key/value referenced by it is already acquired.
  * This is the reason no lock is acquired in each access.
@@ -88,11 +86,6 @@ class ScopedReadBuffer implements OakScopedReadBuffer, OakUnsafeDirectBuffer {
     }
 
     // ------------------------------ OakUnsafeDirectBuffer ------------------------------
-
-    @Override
-    public ByteBuffer getByteBuffer() {
-        return DirectUtils.wrapAddress(s.getAddress(), capacity()).asReadOnlyBuffer();
-    }
 
     @Override
     public int getLength() {
