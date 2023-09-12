@@ -69,11 +69,11 @@ class UnionCodec {
                 firstBitSizeLimit, secondBitSizeLimit);
 
         this.secondShift = this.firstBitSize;
-        this.thirdShift  = this.firstBitSize + this.secondBitSize;
+        this.thirdShift = this.firstBitSize + this.secondBitSize;
 
-        this.firstMask  = mask(this.firstBitSize);
+        this.firstMask = mask(this.firstBitSize);
         this.secondMask = mask(this.secondBitSize);
-        this.thirdMask  = mask(this.thirdBitSize);
+        this.thirdMask = mask(this.thirdBitSize);
     }
 
     /**
@@ -103,12 +103,12 @@ class UnionCodec {
                 firstBitSizeLimit, secondBitSizeLimit);
 
         this.secondShift = this.firstBitSize;
-        this.firstMask  = mask(this.firstBitSize);
+        this.firstMask = mask(this.firstBitSize);
         this.secondMask = mask(this.secondBitSize);
 
         // invalidate third part parameters
         this.thirdShift = INVALID_THIRD_VALUE;
-        this.thirdMask  = INVALID_THIRD_VALUE;
+        this.thirdMask = INVALID_THIRD_VALUE;
     }
 
     /*--------- Static helpers ---------*/
@@ -144,57 +144,57 @@ class UnionCodec {
 
     long encode(long first, long second) {
         // These checks validates that the chosen encoding is sufficient for the current use-case.
-        if ((first & ~firstMask) != 0 || (second & ~secondMask) != 0 ) {
+        if ((first & ~firstMask) != 0 || (second & ~secondMask) != 0) {
             throw new IllegalArgumentException(
                 String.format(
                     "%s has insufficient capacity to encode 2 integers: first %s, second %s",
                     this, first, second));
         }
 
-        long firstPart  = first & firstMask;
+        long firstPart = first & firstMask;
         long secondPart = (second & secondMask) << secondShift;
 
-        return firstPart | secondPart ;
+        return firstPart | secondPart;
     }
 
     long encode(long first, long second, long third) {
         // These checks validates that the chosen encoding is sufficient for the current use-case.
-        if ((first & ~firstMask) != 0 || (second & ~secondMask) != 0 || (third & ~thirdMask) != 0 ) {
+        if ((first & ~firstMask) != 0 || (second & ~secondMask) != 0 || (third & ~thirdMask) != 0) {
             throw new IllegalArgumentException(
                 String.format(
                     "%s has insufficient capacity to encode first %s, second %s, and third %s",
                     this, first, second, third));
         }
 
-        long firstPart  = first & firstMask;
+        long firstPart = first & firstMask;
         long secondPart = (second & secondMask) << secondShift;
-        long thirdPart  = (third & thirdMask)   << thirdShift;
+        long thirdPart = (third & thirdMask) << thirdShift;
 
         return firstPart | secondPart | thirdPart;
     }
 
     int getFirst(final long union) {
-        return  (int) (union & firstMask);
+        return (int) (union & firstMask);
     }
 
     int getFirst(final int union) {
-        return  (int) (union & firstMask);
+        return (int) (union & firstMask);
     }
 
     int getSecond(final long union) {
-        return  (int) ((union >>> secondShift) & secondMask);
+        return (int) ((union >>> secondShift) & secondMask);
     }
 
     int getSecond(final int union) {
-        return  (int) ((union >>> secondShift) & secondMask);
+        return (int) ((union >>> secondShift) & secondMask);
     }
 
     int getThird(final long union) {
-        return  (int) ((union >>> thirdShift) & thirdMask);
+        return (int) ((union >>> thirdShift) & thirdMask);
     }
 
     int getThird(final int union) {
-        return  (int) ((union >>> thirdShift) & thirdMask);
+        return (int) ((union >>> thirdShift) & thirdMask);
     }
 
     int getFirstBitSize() {

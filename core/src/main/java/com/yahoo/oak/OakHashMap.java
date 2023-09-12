@@ -21,13 +21,13 @@ import java.util.function.Function;
 /**
  * A concurrent map implementation which supports off-heap memory.
  */
-public class OakHashMap<K, V> extends AbstractMap<K, V> implements AutoCloseable, ConcurrentZCMap<K , V> {
+public class OakHashMap<K, V> extends AbstractMap<K, V> implements AutoCloseable, ConcurrentZCMap<K, V> {
 
     // Used for iterators
     private final Function<Map.Entry<OakScopedReadBuffer, OakScopedReadBuffer>,
             Map.Entry<K, V>> entryDeserializeTransformer;
 
-    private final InternalOakHash<K , V> internalOakHash;
+    private final InternalOakHash<K, V> internalOakHash;
 
 
     // internal constructor, to create OakHashMap use OakMapBuilder
@@ -119,7 +119,7 @@ public class OakHashMap<K, V> extends AbstractMap<K, V> implements AutoCloseable
     public boolean remove(Object key, Object value) {
         checkKey((K) key);
         Objects.requireNonNull(value);
-        return  (internalOakHash.remove((K) key, (V) value,
+        return (internalOakHash.remove((K) key, (V) value,
             internalOakHash.config.valueSerializer::deserialize).operationResult == ValueUtils.ValueResult.TRUE);
     }
 
@@ -384,7 +384,7 @@ public class OakHashMap<K, V> extends AbstractMap<K, V> implements AutoCloseable
 
     /* ---------------- View Classes -------------- */
 
-    static class KeySet<K> extends AbstractSet<K>  {
+    static class KeySet<K> extends AbstractSet<K> {
 
         private final OakHashMap<K, ?> m;
 

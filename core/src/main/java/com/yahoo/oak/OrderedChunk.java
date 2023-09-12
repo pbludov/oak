@@ -169,7 +169,7 @@ class OrderedChunk<K, V> extends BasicChunk<K, V> {
     @Override
     void release() {
         boolean released = state.compareAndSet(State.FROZEN, State.RELEASED);
-        if ( !(config.keysMemoryManager instanceof SeqExpandMemoryManager) && released ) {
+        if (!(config.keysMemoryManager instanceof SeqExpandMemoryManager) && released) {
             entryOrderedSet.releaseAllDeletedKeys();
         }
     }

@@ -118,7 +118,7 @@ class NovaMemoryManager extends SyncRecycleMemoryManager {
             if (myReleaseList.size() >= RELEASE_LIST_LIMIT) {
                 ArrayList<Long> hostageSlices = new ArrayList<>();
                 for (int i = CACHE_PADDING; 
-                    i < 2 * CACHE_PADDING * ThreadIndexCalculator.MAX_THREADS; i = i + CACHE_PADDING ) {
+                    i < 2 * CACHE_PADDING * ThreadIndexCalculator.MAX_THREADS; i = i + CACHE_PADDING) {
                     if (tap.get(i + REFENTRY) != INVALID_ENTRY) {
                         hostageSlices.add(tap.get(i + REFENTRY));
                     }
@@ -130,7 +130,7 @@ class NovaMemoryManager extends SyncRecycleMemoryManager {
                 for (int iret = 0; iret < myReleaseList.size();) {
                     toDeleteObj = myReleaseList.get(iret);
                     long tap = rc.encode(blockID, offset, 0);
-                    if (! hostageSlices.contains(tap)) {
+                    if (!hostageSlices.contains(tap)) {
                         myReleaseList.remove(toDeleteObj);
                         allocator.free(toDeleteObj);
                         continue;
@@ -230,7 +230,7 @@ class NovaMemoryManager extends SyncRecycleMemoryManager {
          */
         public ValueUtils.ValueResult postWrite() {
             assert version != ReferenceCodecSyncRecycle.INVALID_VERSION;
-            return HEADER.postWrite(version, getMetadataAddress(),  tap);
+            return HEADER.postWrite(version, getMetadataAddress(), tap);
         }
 
         /**

@@ -300,42 +300,57 @@ public final class MurmurHash3 {
         switch (len & 15) {
             case 15:
                 k2 = (key[roundedEnd + 14] & 0xffL) << 48;
+                // fallthrough
             case 14:
                 k2 |= (key[roundedEnd + 13] & 0xffL) << 40;
+                // fallthrough
             case 13:
                 k2 |= (key[roundedEnd + 12] & 0xffL) << 32;
+                // fallthrough
             case 12:
                 k2 |= (key[roundedEnd + 11] & 0xffL) << 24;
+                // fallthrough
             case 11:
                 k2 |= (key[roundedEnd + 10] & 0xffL) << 16;
+                // fallthrough
             case 10:
                 k2 |= (key[roundedEnd + 9] & 0xffL) << 8;
+                // fallthrough
             case 9:
                 k2 |= (key[roundedEnd + 8] & 0xffL);
                 k2 *= MURMUR_128_C2;
                 k2 = Long.rotateLeft(k2, 33);
                 k2 *= MURMUR_128_C1;
                 h2 ^= k2;
+                // fallthrough
             case 8:
                 k1 = ((long) key[roundedEnd + 7]) << 56;
+                // fallthrough
             case 7:
                 k1 |= (key[roundedEnd + 6] & 0xffL) << 48;
+                // fallthrough
             case 6:
                 k1 |= (key[roundedEnd + 5] & 0xffL) << 40;
+                // fallthrough
             case 5:
                 k1 |= (key[roundedEnd + 4] & 0xffL) << 32;
+                // fallthrough
             case 4:
                 k1 |= (key[roundedEnd + 3] & 0xffL) << 24;
+                // fallthrough
             case 3:
                 k1 |= (key[roundedEnd + 2] & 0xffL) << 16;
+                // fallthrough
             case 2:
                 k1 |= (key[roundedEnd + 1] & 0xffL) << 8;
+                // fallthrough
             case 1:
                 k1 |= (key[roundedEnd] & 0xffL);
                 k1 *= MURMUR_128_C1;
                 k1 = Long.rotateLeft(k1, 31);
                 k1 *= MURMUR_128_C2;
                 h1 ^= k1;
+                // fallthrough
         }
 
         //----------
@@ -392,42 +407,57 @@ public final class MurmurHash3 {
         switch (len & 15) {
             case 15:
                 k2 = (key.get(roundedEnd + 14) & 0xffL) << 48;
+                // fallthrough
             case 14:
                 k2 |= (key.get(roundedEnd + 13) & 0xffL) << 40;
+                // fallthrough
             case 13:
                 k2 |= (key.get(roundedEnd + 12) & 0xffL) << 32;
+                // fallthrough
             case 12:
                 k2 |= (key.get(roundedEnd + 11) & 0xffL) << 24;
+                // fallthrough
             case 11:
                 k2 |= (key.get(roundedEnd + 10) & 0xffL) << 16;
+                // fallthrough
             case 10:
                 k2 |= (key.get(roundedEnd + 9) & 0xffL) << 8;
+                // fallthrough
             case 9:
                 k2 |= (key.get(roundedEnd + 8) & 0xffL);
                 k2 *= MURMUR_128_C2;
                 k2 = Long.rotateLeft(k2, 33);
                 k2 *= MURMUR_128_C1;
                 h2 ^= k2;
+                // fallthrough
             case 8:
                 k1 = ((long) key.get(roundedEnd + 7)) << 56;
+                // fallthrough
             case 7:
                 k1 |= (key.get(roundedEnd + 6) & 0xffL) << 48;
+                // fallthrough
             case 6:
                 k1 |= (key.get(roundedEnd + 5) & 0xffL) << 40;
+                // fallthrough
             case 5:
                 k1 |= (key.get(roundedEnd + 4) & 0xffL) << 32;
+                // fallthrough
             case 4:
                 k1 |= (key.get(roundedEnd + 3) & 0xffL) << 24;
+                // fallthrough
             case 3:
                 k1 |= (key.get(roundedEnd + 2) & 0xffL) << 16;
+                // fallthrough
             case 2:
                 k1 |= (key.get(roundedEnd + 1) & 0xffL) << 8;
+                // fallthrough
             case 1:
                 k1 |= (key.get(roundedEnd) & 0xffL);
                 k1 *= MURMUR_128_C1;
                 k1 = Long.rotateLeft(k1, 31);
                 k1 *= MURMUR_128_C2;
                 h1 ^= k1;
+                // fallthrough
         }
 
         //----------

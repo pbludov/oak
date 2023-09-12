@@ -37,7 +37,7 @@ package com.yahoo.oak;
  *
  * From that, we can derive that the maximal number of 1K items that can be allocated is ~128 million (2^26).
  * Note: these limitations will change for different block sizes. */
-class SeqExpandMemoryManager implements MemoryManager  {
+class SeqExpandMemoryManager implements MemoryManager {
     private final BlockMemoryAllocator allocator;
 
     /*
@@ -239,14 +239,14 @@ class SeqExpandMemoryManager implements MemoryManager  {
                 return false;
             }
 
-            this.blockID  = rc.getFirst(reference);
+            this.blockID = rc.getFirst(reference);
             this.offset = rc.getSecond(reference);
-            this.length  = rc.getThird(reference);
+            this.length = rc.getThird(reference);
             this.reference = reference;
             assert length != UNDEFINED_LENGTH_OR_OFFSET_OR_ADDRESS;
 
             // This is not the full setting of the association, therefore 'associated' flag remains false
-            associated   = false;
+            associated = false;
 
             return true;
         }
@@ -274,12 +274,12 @@ class SeqExpandMemoryManager implements MemoryManager  {
          * ------------------------------------------------------------------------------------*/
         // Reset all common not final fields to invalid state
         public void invalidate() {
-            blockID     = NativeMemoryAllocator.INVALID_BLOCK_ID;
-            reference   = ReferenceCodec.INVALID_REFERENCE;
-            length      = UNDEFINED_LENGTH_OR_OFFSET_OR_ADDRESS;
-            offset      = UNDEFINED_LENGTH_OR_OFFSET_OR_ADDRESS;
-            memAddress  = UNDEFINED_LENGTH_OR_OFFSET_OR_ADDRESS;
-            associated  = false;
+            blockID = NativeMemoryAllocator.INVALID_BLOCK_ID;
+            reference = ReferenceCodec.INVALID_REFERENCE;
+            length = UNDEFINED_LENGTH_OR_OFFSET_OR_ADDRESS;
+            offset = UNDEFINED_LENGTH_OR_OFFSET_OR_ADDRESS;
+            memAddress = UNDEFINED_LENGTH_OR_OFFSET_OR_ADDRESS;
+            associated = false;
         }
 
         // Copy the block allocation information from another block allocation.

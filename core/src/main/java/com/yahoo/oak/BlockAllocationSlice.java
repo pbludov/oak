@@ -91,7 +91,7 @@ abstract class BlockAllocationSlice implements Slice, Comparable<BlockAllocation
             && length > UNDEFINED_LENGTH_OR_OFFSET_OR_ADDRESS
             && memAddress != UNDEFINED_LENGTH_OR_OFFSET_OR_ADDRESS;
         setBlockIdOffsetAndLength(blockID, offset, length);
-        this.memAddress  = memAddress;
+        this.memAddress = memAddress;
         // more Slice's properties are yet to be set by Memory Manager (MM) during allocation
 
         // needs to be set here (and not in MM) due to the tests,

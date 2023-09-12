@@ -96,19 +96,19 @@ class NovaMMHeader {
         //can be replaced with always true without unsetting the tap
     }
 
-    ValueUtils.ValueResult logicalDelete(final int onHeapVersion , long headerAddress) {
+    ValueUtils.ValueResult logicalDelete(final int onHeapVersion, long headerAddress) {
         assert onHeapVersion > ReferenceCodecSyncRecycle.INVALID_VERSION;
         long offHeapHeader = -1;
         do {
             offHeapHeader = getOffHeapHeader(headerAddress);
             int oldVersion = RC.getFirst(offHeapHeader);
-            if (oldVersion  != onHeapVersion ) {
+            if (oldVersion != onHeapVersion) {
                 return ValueUtils.ValueResult.RETRY; //TODO retry?
             }
             if (RC.isReferenceDeleted(offHeapHeader)) {
                 return ValueUtils.ValueResult.FALSE;
             }
-        } while (!atomicallySetDeleted(headerAddress,  offHeapHeader));
+        } while (!atomicallySetDeleted(headerAddress, offHeapHeader));
         return ValueUtils.ValueResult.TRUE;
     }
 

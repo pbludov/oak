@@ -19,7 +19,7 @@ package com.yahoo.oak;
  */
 class ReferenceCodecSyncRecycle extends ReferenceCodec {
 
-    static final int    INVALID_VERSION = 0;
+    static final int INVALID_VERSION = 0;
 
     // All Oak instances on one machine are expected to reference to no more than 4TB of RAM.
     // 4TB = 2^42 bytes
@@ -28,7 +28,7 @@ class ReferenceCodecSyncRecycle extends ReferenceCodec {
     private static final int BITS_FOR_MAXIMUM_RAM = 42;
     private long versionDeleteBitMASK = (1 << (Long.SIZE - BITS_FOR_MAXIMUM_RAM - 1));
     private long referenceDeleteBitMASK
-            = (INVALID_REFERENCE | (versionDeleteBitMASK << BITS_FOR_MAXIMUM_RAM));
+           = (INVALID_REFERENCE | (versionDeleteBitMASK << BITS_FOR_MAXIMUM_RAM));
 
     // number of allowed bits for version (-1 for delete bit) set to one
     static final int LAST_VALID_VERSION = (int) mask(Long.SIZE - BITS_FOR_MAXIMUM_RAM - 1);
@@ -53,7 +53,7 @@ class ReferenceCodecSyncRecycle extends ReferenceCodec {
         // and the rest goes for version (currently 22 bits)
         this.versionDeleteBitMASK = versionDeleteBitMASK;
         this.referenceDeleteBitMASK
-                = (INVALID_REFERENCE | (versionDeleteBitMASK << BITS_FOR_MAXIMUM_RAM));
+               = (INVALID_REFERENCE | (versionDeleteBitMASK << BITS_FOR_MAXIMUM_RAM));
     }
 
     @Override

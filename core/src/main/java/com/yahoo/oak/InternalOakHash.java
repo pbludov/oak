@@ -530,11 +530,11 @@ class InternalOakHash<K, V> extends InternalOakBasics<K, V> {
         }
 
         private void invalidateLastKeyHash() {
-            this.lastKeyHash =  EntryHashSet.INVALID_KEY_HASH;
+            this.lastKeyHash = EntryHashSet.INVALID_KEY_HASH;
         }
 
         private boolean getKeyValid() {
-            return this.lastKeyHash !=  EntryHashSet.INVALID_KEY_HASH;
+            return this.lastKeyHash != EntryHashSet.INVALID_KEY_HASH;
 
         }
         @Override
@@ -622,7 +622,7 @@ class InternalOakHash<K, V> extends InternalOakBasics<K, V> {
          * Return previous index
          */
         @Override
-        protected void  advanceStream(UnscopedBuffer<KeyBuffer> key, UnscopedBuffer<ValueBuffer> value) {
+        protected void advanceStream(UnscopedBuffer<KeyBuffer> key, UnscopedBuffer<ValueBuffer> value) {
             assert key != null || value != null;
 
             boolean validState = false;
@@ -836,7 +836,7 @@ class InternalOakHash<K, V> extends InternalOakBasics<K, V> {
     public class KeyStreamIterator extends HashIter<OakUnscopedBuffer> {
 
         private final UnscopedBuffer<KeyBuffer> key
-                = new UnscopedBuffer<>(new KeyBuffer(getKeysMemoryManager().getEmptySlice()));
+               = new UnscopedBuffer<>(new KeyBuffer(getKeysMemoryManager().getEmptySlice()));
 
         @Override
         public OakUnscopedBuffer next() {

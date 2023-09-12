@@ -100,10 +100,10 @@ class ReferenceCodec extends UnionCodec {
      * @return the encoded reference
      */
     long alterForDelete(final long reference) {
-        long first  = getFirstForDelete(reference);
+        long first = getFirstForDelete(reference);
         long second = getSecondForDelete(reference);
-        long third  = getThirdForDelete(reference);
+        long third = getThirdForDelete(reference);
 
-        return  encode(first, second, third);
+        return encode(first, second, third);
     }
 }

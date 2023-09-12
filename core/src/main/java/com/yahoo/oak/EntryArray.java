@@ -337,7 +337,7 @@ public class EntryArray<K, V> {
 
         if (config.valuesMemoryManager.isReferenceDeleted(value.getSlice().getReference())) {
             // if value is valid the reference can still be deleted
-            return  EntryState.DELETED;
+            return EntryState.DELETED;
         }
 
         // value reference is valid, just need to check if off-heap is marked deleted

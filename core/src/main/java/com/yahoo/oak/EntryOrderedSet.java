@@ -62,14 +62,13 @@ class EntryOrderedSet<K, V> extends EntryArray<K, V> {
      */
     EntryOrderedSet(OakSharedConfig<K, V> config, int entriesCapacity) {
         super(config, ADDITIONAL_FIELDS, entriesCapacity);
-        this.nextFreeIndex = new AtomicInteger( 0);
+        this.nextFreeIndex = new AtomicInteger(0);
     }
 
     int getLastEntryIndex() {
         return nextFreeIndex.get();
     }
 
-    /********************************************************************************************/
     /*------------- Methods for managing next entry indexes (package visibility) ---------------*/
 
     /**
@@ -299,7 +298,7 @@ class EntryOrderedSet<K, V> extends EntryArray<K, V> {
 
     void releaseAllDeletedKeys() {
         KeyBuffer key = new KeyBuffer(config.keysMemoryManager.getEmptySlice());
-        for (int i = 0; i < numOfEntries.get() ; i++) {
+        for (int i = 0; i < numOfEntries.get(); i++) {
             if (!config.valuesMemoryManager.isReferenceDeleted(getValueReference(i))) {
                 continue;
             }

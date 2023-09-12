@@ -523,11 +523,11 @@ class EntryHashSet<K, V> extends EntryArray<K, V> {
 
         // Try to assign our key
         if (casKeyReference(ctx.entryIndex, ctx.tempKey.getSlice().getReference(), /* old reference */
-            ctx.key.getSlice().getReference() /* new reference */ )) {
+            ctx.key.getSlice().getReference() /* new reference */)) {
 
             // key reference CASed (only one should succeed) write the entry's key hash,
             // because it is used for keys comparison (invalid key hash is not used for comparison)
-            if ( casKeyHashAndUpdateCounter(ctx.entryIndex, ctx.keyHashAndUpdateCnt, keyHash) ) {
+            if (casKeyHashAndUpdateCounter(ctx.entryIndex, ctx.keyHashAndUpdateCnt, keyHash)) {
                 numOfEntries.getAndIncrement();
                 return true;
             } else {

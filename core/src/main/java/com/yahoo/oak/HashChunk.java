@@ -40,7 +40,7 @@ class HashChunk<K, V> extends BasicChunk<K, V> {
      */
     HashChunk(OakSharedConfig<K, V> config, int maxItems, UnionCodec hashIndexCodec) {
         super(config, maxItems);
-        assert Math.pow( 2, hashIndexCodec.getFirstBitSize() ) <= maxItems;
+        assert Math.pow(2, hashIndexCodec.getFirstBitSize()) <= maxItems;
 
         this.hashIndexCodec = hashIndexCodec;
         // must be called after hashIndexCodec assignment

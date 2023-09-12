@@ -272,14 +272,14 @@ class SyncRecycleMemoryManager implements MemoryManager {
                 return false;
             }
 
-            this.blockID  = rc.getFirst(reference);
+            this.blockID = rc.getFirst(reference);
             this.offset = rc.getSecond(reference);
-            this.version  = rc.getThird(reference);
+            this.version = rc.getThird(reference);
             this.length = UNDEFINED_LENGTH_OR_OFFSET_OR_ADDRESS;
             this.reference = reference;
 
             // This is not the full setting of the association, therefore 'associated' flag remains false
-            associated   = false;
+            associated = false;
 
             return !isReferenceDeleted(reference);
         }
@@ -306,13 +306,13 @@ class SyncRecycleMemoryManager implements MemoryManager {
          * ------------------------------------------------------------------------------------*/
         // Reset all not final fields to invalid state
         public void invalidate() {
-            blockID     = NativeMemoryAllocator.INVALID_BLOCK_ID;
-            reference   = ReferenceCodecSyncRecycle.INVALID_REFERENCE;
-            version     = ReferenceCodecSyncRecycle.INVALID_VERSION;
-            length      = UNDEFINED_LENGTH_OR_OFFSET_OR_ADDRESS;
-            offset      = UNDEFINED_LENGTH_OR_OFFSET_OR_ADDRESS;
-            memAddress  = UNDEFINED_LENGTH_OR_OFFSET_OR_ADDRESS;
-            associated  = false;
+            blockID = NativeMemoryAllocator.INVALID_BLOCK_ID;
+            reference = ReferenceCodecSyncRecycle.INVALID_REFERENCE;
+            version = ReferenceCodecSyncRecycle.INVALID_VERSION;
+            length = UNDEFINED_LENGTH_OR_OFFSET_OR_ADDRESS;
+            offset = UNDEFINED_LENGTH_OR_OFFSET_OR_ADDRESS;
+            memAddress = UNDEFINED_LENGTH_OR_OFFSET_OR_ADDRESS;
+            associated = false;
         }
 
         // Copy the block allocation information from another block allocation.

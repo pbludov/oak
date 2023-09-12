@@ -119,7 +119,7 @@ class UnscopedBuffer<B extends ScopedReadBuffer> implements OakUnscopedBuffer, O
 
     @Override
     public long getAddress() {
-        return internalScopedReadBuffer.getAddress() ;
+        return internalScopedReadBuffer.getAddress();
     }
   
 }

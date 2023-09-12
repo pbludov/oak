@@ -46,7 +46,7 @@ public class OakFloatSerializer implements OakSerializer<Float> {
     }
 
     private static byte[] floatToByteArray(float value) {
-        int intBits =  Float.floatToIntBits(value);
+        int intBits = Float.floatToIntBits(value);
         return new byte[] {
             (byte) (intBits >> 24), (byte) (intBits >> 16), (byte) (intBits >> 8), (byte) (intBits) };
     }

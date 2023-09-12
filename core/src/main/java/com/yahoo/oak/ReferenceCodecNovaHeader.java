@@ -19,11 +19,11 @@ package com.yahoo.oak;
  */
 class ReferenceCodecNovaHeader extends ReferenceCodec {
 
-    static final int    INVALID_VERSION = 0;
-    static final int    DELETED_REFERENCE = 1;
-    static final int    VERSION_SIZE = 22;
-    private long versionDeleteBitMASK    = 1; //first bit is the deleted bit
-    private long referenceDeleteBitMASK  = 1;
+    static final int INVALID_VERSION = 0;
+    static final int DELETED_REFERENCE = 1;
+    static final int VERSION_SIZE = 22;
+    private long versionDeleteBitMASK = 1; //first bit is the deleted bit
+    private long referenceDeleteBitMASK = 1;
 
 
     /**

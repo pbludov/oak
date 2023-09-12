@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-class InternalOakMap<K, V>  extends InternalOakBasics<K, V> {
+class InternalOakMap<K, V> extends InternalOakBasics<K, V> {
 
     /*-------------- Members --------------*/
 
@@ -344,7 +344,7 @@ class InternalOakMap<K, V>  extends InternalOakBasics<K, V> {
                 // (1) Key wasn't found (key and value not valid)
                 // (2) Key was found and it's value is deleted/invalid (key valid value invalid)
                 if (!ctx.isKeyValid()) {
-                    if (!allocateAndLinkEntry( c, ctx, key, false)) {
+                    if (!allocateAndLinkEntry(c, ctx, key, false)) {
                         continue; // allocation wasn't successful and resulted in rebalance - retry
                     }
                 }
@@ -353,7 +353,7 @@ class InternalOakMap<K, V>  extends InternalOakBasics<K, V> {
     
                 if (!c.publish()) {
                     c.releaseNewValue(ctx);
-                    rebalance( c);
+                    rebalance(c);
                     continue;
                 }
     
@@ -408,7 +408,7 @@ class InternalOakMap<K, V>  extends InternalOakBasics<K, V> {
                 // (1) Key wasn't found (key and value not valid)
                 // (2) Key was found and it's value is deleted/invalid (key valid value invalid)
                 if (!ctx.isKeyValid()) {
-                    if (!allocateAndLinkEntry( c, ctx, key, true)) {
+                    if (!allocateAndLinkEntry(c, ctx, key, true)) {
                         // allocation wasn't successful and resulted in rebalance,
                         // or retry is needed for other reason - retry
                         continue;
@@ -419,7 +419,7 @@ class InternalOakMap<K, V>  extends InternalOakBasics<K, V> {
     
                 if (!c.publish()) {
                     c.releaseNewValue(ctx); // @TODO clean key from off-heap as well
-                    rebalance( c);
+                    rebalance(c);
                     continue;
                 }
     
@@ -476,7 +476,7 @@ class InternalOakMap<K, V>  extends InternalOakBasics<K, V> {
                 // (1) Key wasn't found (key and value not valid)
                 // (2) Key was found and it's value is deleted/invalid (key valid value invalid)
                 if (!ctx.isKeyValid()) {
-                    if (!allocateAndLinkEntry( c, ctx, key, false)) {
+                    if (!allocateAndLinkEntry(c, ctx, key, false)) {
                         continue;
                     }
                 }
@@ -485,7 +485,7 @@ class InternalOakMap<K, V>  extends InternalOakBasics<K, V> {
     
                 if (!c.publish()) {
                     c.releaseNewValue(ctx);
-                    rebalance( c);
+                    rebalance(c);
                     continue;
                 }
     
@@ -885,7 +885,7 @@ class InternalOakMap<K, V>  extends InternalOakBasics<K, V> {
     /**
      * Base of iterator classes:
      */
-    abstract class OrderedIter<T> extends  BasicIter<T> {
+    abstract class OrderedIter<T> extends BasicIter<T> {
 
         private K lo;
 
@@ -953,7 +953,7 @@ class InternalOakMap<K, V>  extends InternalOakBasics<K, V> {
                 nextKey = null;
                 try {
                     nextKey = KeyUtils.deSerializedKey(ctx.tempKey, getKeySerializer());
-                } catch ( DeletedMemoryAccessException e ) {
+                } catch (DeletedMemoryAccessException e) {
                     continue;
                 }
                 break;
@@ -1110,7 +1110,7 @@ class InternalOakMap<K, V>  extends InternalOakBasics<K, V> {
         protected BasicChunk<K, V> getNextChunk(BasicChunk<K, V> current) {
             OrderedChunk<K, V> currentHashChunk = (OrderedChunk<K, V>) current;
             if (!isDescending) {
-                return  currentHashChunk.next.getReference();
+                return currentHashChunk.next.getReference();
             } else {
                 Map.Entry<Object, OrderedChunk<K, V>> entry = skiplist.lowerEntry(currentHashChunk.minKey);
                 if (entry == null) {

@@ -102,9 +102,10 @@ class Rebalancer<K, V> {
      * @return if managed to CAS to newChunk list of rebalance
      * if we did then the put was inserted
      */
+    @SuppressWarnings({"IllegalToken"})
     boolean createNewChunks(ThreadContext ctx) {
         
-        retry : while (true) {
+        retry: while (true) {
             if (this.newChunks.get() != null) {
                 return false; // this was done by another thread already
             }

@@ -10,7 +10,8 @@ import java.util.concurrent.atomic.AtomicLong;
 
 class Block {
 
-    private final long blockMemAddress ;
+
+    private final long blockMemAddress;
 
     private final int capacity;
     private final AtomicLong allocated = new AtomicLong(0);
@@ -23,7 +24,7 @@ class Block {
         this.id = NativeMemoryAllocator.INVALID_BLOCK_ID;
         // Pay attention in allocateDirect the data is *zero'd out*
         // which has an overhead in clearing and you end up touching every page
-        this.blockMemAddress  = DirectUtils.allocateMemory(capacity);
+        this.blockMemAddress = DirectUtils.allocateMemory(capacity);
         DirectUtils.setMemory(this.blockMemAddress, capacity, (byte) 0); // zero block's memory
     }
 
@@ -42,7 +43,7 @@ class Block {
         if (offset + size > this.capacity) {
             throw new OakOutOfMemoryException(String.format("Block %d is out of memory", id));
         }
-        s.associateBlockAllocation(id, (int) offset, size, blockMemAddress );
+        s.associateBlockAllocation(id, (int) offset, size, blockMemAddress);
         return true;
     }
 
@@ -66,7 +67,7 @@ class Block {
     }
 
     long getStartMemAddress() {
-        return blockMemAddress ;
+        return blockMemAddress;
     }
 
     // how many bytes a block may include, regardless allocated/free

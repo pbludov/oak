@@ -153,7 +153,7 @@ class FirstLevelHashArray<K, V> {
                 return null;
             }
         }
-        int  nextIdx;
+        int nextIdx;
         // two array indexes can reference the same chunk,
         // therefore we increment the index till the chunk at the index is different from the
         // current chunk
@@ -235,7 +235,7 @@ class FirstLevelHashArray<K, V> {
             System.out.println("|| ");
         }
         // and 2 last chunks
-        int preLastChunk =  chunks.length() - 2;
+        int preLastChunk = chunks.length() - 2;
         int lastChunk = chunks.length() - 1;
 
         System.out.println("Chunk " + preLastChunk);
