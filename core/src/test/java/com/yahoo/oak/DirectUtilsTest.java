@@ -38,19 +38,20 @@ public class DirectUtilsTest {
     @Test
     public void testCopyToArray() {
         final int sz = 10;
-        final long allocSize = sz * Integer.BYTES;
-        final int[] expected = new int[sz];
+        final long allocSize = sz;
+        final byte[] expected = new byte[sz];
 
-        long address = DirectUtils.allocateMemory(allocSize);
+        long address = DirectUtils.allocateMemory(128 * BlocksPool.MB + sz);
 
         try {
-            for (int i = 0; i < sz; i++) {
+            long start = address + 128 * BlocksPool.MB - 2;
+            for (byte i = 0; i < sz; i++) {
                 expected[i] = i;
-                DirectUtils.putInt(address + i * Integer.BYTES, i);
+                DirectUtils.put(start + i, i);
             }
 
-            final int[] result = new int[sz];
-            long copySize = DirectUtils.copyToArray(address, result, sz);
+            final byte[] result = new byte[sz];
+            long copySize = DirectUtils.copyToArray(start, result, sz);
             Assert.assertEquals(allocSize, copySize);
             Assert.assertArrayEquals(expected, result);
         } finally {
@@ -59,22 +60,39 @@ public class DirectUtilsTest {
     }
 
     @Test
+    public void testLongOnBufferEdge() {
+        final int sz = Long.BYTES;
+
+        long address = DirectUtils.allocateMemory(128 * BlocksPool.MB + sz);
+
+        try {
+            long start = address + 128 * BlocksPool.MB - 2;
+            DirectUtils.putLong(start, 0x12345678L);
+            long value = DirectUtils.getLong(start);
+
+            Assert.assertEquals(0x12345678L, value);
+        } finally {
+            DirectUtils.freeMemory(address);
+        }
+    }
+
+    @Test
     public void testCopyFromArray() {
         final int sz = 10;
-        final long allocSize = sz * Integer.BYTES;
-        final int[] expected = new int[sz];
+        final long allocSize = sz;
+        final byte[] expected = new byte[sz];
 
-        for (int i = 0; i < sz; i++) {
+        for (byte i = 0; i < sz; i++) {
             expected[i] = i;
         }
 
-        long address = DirectUtils.allocateMemory(sz * Integer.BYTES);
+        long address = DirectUtils.allocateMemory(sz);
         try {
             long copySize = DirectUtils.copyFromArray(expected, address, sz);
             Assert.assertEquals(allocSize, copySize);
 
             for (int i = 0; i < sz; i++) {
-                Assert.assertEquals(expected[i], DirectUtils.getInt(address + i * Integer.BYTES));
+                Assert.assertEquals(expected[i], DirectUtils.get(address + i));
             }
         } finally {
             DirectUtils.freeMemory(address);

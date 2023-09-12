@@ -1,0 +1,15 @@
+Configuration:
+  appenders:
+    Console:
+      - name: stdout
+        PatternLayout:
+          Pattern: "%d %-5level [%t] %c{1.}: %X{formatted-rid} %msg%n%throwable"
+  Loggers:
+    Root:
+      level: info
+      AppenderRef:
+        ref: stdout
+    Logger:
+      # application
+      - name: com.yahoo.oak.DirectUtils
+        level: debug
