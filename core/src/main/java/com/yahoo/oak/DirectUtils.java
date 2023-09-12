@@ -26,7 +26,7 @@ public final class DirectUtils {
     private static final Logger LOGGER = LogManager.getLogger(DirectUtils.class);
     private static final int CHUNK_SIZE = 4096;
 
-    private static final int MAX_BUFFER_SIZE = 128 * 1024;
+    private static final int MAX_BUFFER_SIZE = 128 * 1024 * 1024;
     private static final List<ByteBuffer> BUFFERS = new ArrayList<>();
     private static final Map<Long, Long> REGIONS = new HashMap<>();
 
